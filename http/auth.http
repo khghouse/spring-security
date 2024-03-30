@@ -1,0 +1,18 @@
+
+### 회원 가입
+POST localhost:8080/signup
+Content-Type: application/json
+
+{
+  "email" : "khghouse@daum.net",
+  "password" : "Khghouse12!@"
+}
+
+### 로그인
+POST localhost:8080/login
+Content-Type: application/json
+
+{
+  "email" : "khghouse@daum.net",
+  "password" : "Khghouse12!@"
+}
