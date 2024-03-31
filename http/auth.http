@@ -1,6 +1,6 @@
 
 ### 회원 가입
-POST localhost:8080/signup
+POST localhost:8080/auth/signup
 Content-Type: application/json
 
 {
@@ -9,7 +9,7 @@ Content-Type: application/json
 }
 
 ### 로그인
-POST localhost:8080/login
+POST localhost:8080/auth/login
 Content-Type: application/json
 
 {

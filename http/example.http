@@ -1,0 +1,8 @@
+
+### 유저 권한이라면 success
+GET localhost:8080/user
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJraGdob3VzZUBkYXVtLm5ldCIsIm1lbWJlcklkIjoxLCJlbWFpbCI6ImtoZ2hvdXNlQGRhdW0ubmV0IiwiYXV0aG9yaXRpZXMiOiJST0xFX1VTRVIiLCJleHAiOjE3MTE4OTYwMDB9.IDTPkA7-onMmSOGUSmv31l5YZt7b6uS3k8-wcAVKDqA
+
+### 어드민 권한이라면 success
+GET localhost:8080/admin
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJraGdob3VzZUBkYXVtLm5ldCIsIm1lbWJlcklkIjoxLCJlbWFpbCI6ImtoZ2hvdXNlQGRhdW0ubmV0IiwiYXV0aG9yaXRpZXMiOiJST0xFX1VTRVIiLCJleHAiOjE3MTE4OTYwMDB9.IDTPkA7-onMmSOGUSmv31l5YZt7b6uS3k8-wcAVKDqA

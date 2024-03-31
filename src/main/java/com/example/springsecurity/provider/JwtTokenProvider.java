@@ -1,9 +1,7 @@
 package com.example.springsecurity.provider;
 
 import com.example.springsecurity.dto.response.SecurityUser;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -69,7 +67,7 @@ public class JwtTokenProvider {
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
 
-        UserDetails securityUser = new SecurityUser((Long) claims.get("memberId"), (String) claims.get("email"), authorities);
+        UserDetails securityUser = new SecurityUser(claims.get("memberId", Long.class), claims.get("email", String.class), authorities);
         return new UsernamePasswordAuthenticationToken(securityUser, null, authorities);
     }
 
@@ -79,6 +77,21 @@ public class JwtTokenProvider {
                 .build()
                 .parseSignedClaims(accessToken)
                 .getPayload();
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            parseClaims(token);
+            return true;
+        } catch (SecurityException | MalformedJwtException e) {
+            throw new RuntimeException("Invalid JWT Token", e);
+        } catch (ExpiredJwtException e) {
+            throw new RuntimeException("Expired JWT Token", e);
+        } catch (UnsupportedJwtException e) {
+            throw new RuntimeException("Unsupported JWT Token", e);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("JWT claims string is empty", e);
+        }
     }
 
     private Date getExpiration(Long millisecond) {
