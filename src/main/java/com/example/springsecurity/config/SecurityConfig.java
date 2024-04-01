@@ -1,7 +1,9 @@
 package com.example.springsecurity.config;
 
 import com.example.springsecurity.filter.JwtAuthenticationFilter;
+import com.example.springsecurity.handler.SecurityAccessDeniedHandler;
 import com.example.springsecurity.provider.JwtTokenProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +28,7 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -40,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin").hasRole("ADMIN") // 해당 API는 ADMIN 권한이 필요
                         .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
                 )
+                .exceptionHandling(exception -> exception.accessDeniedHandler(new SecurityAccessDeniedHandler(objectMapper)))
                 .userDetailsService(userDetailsService)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class) // UsernamePasswordAuthenticationFilter 실행 전에 JwtAuthenticationFilter를 실행
                 .build();

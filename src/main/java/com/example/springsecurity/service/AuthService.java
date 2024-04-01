@@ -23,12 +23,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationProvider authenticationProvider;
 
-    public AuthResponse signup(AuthServiceRequest request) {
+    public void signup(AuthServiceRequest request) {
         validateAlreadyJoinedMember(request.getEmail());
 
-        Member member = memberRepository.save(request.toEntity(passwordEncoder.encode(request.getPassword())));
-
-        return AuthResponse.of(generateAccessToken(member));
+        memberRepository.save(request.toEntity(passwordEncoder.encode(request.getPassword())));
     }
 
     public AuthResponse login(AuthServiceRequest request) {
