@@ -1,7 +1,7 @@
 package com.example.springsecurity.service;
 
 import com.example.springsecurity.dto.request.AuthServiceRequest;
-import com.example.springsecurity.dto.response.AuthResponse;
+import com.example.springsecurity.dto.response.JwtToken;
 import com.example.springsecurity.entity.Member;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import com.example.springsecurity.repository.MemberRepository;
@@ -29,7 +29,7 @@ public class AuthService {
         memberRepository.save(request.toEntity(passwordEncoder.encode(request.getPassword())));
     }
 
-    public AuthResponse login(AuthServiceRequest request) {
+    public JwtToken login(AuthServiceRequest request) {
         Member member = memberRepository.findByEmailAndDeletedFalse(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 계정입니다."));
 
@@ -37,17 +37,20 @@ public class AuthService {
             throw new RuntimeException("아이디와 비밀번호를 다시 확인해 주세요.");
         }
 
-        return AuthResponse.of(generateAccessToken(member));
+        return generateToken(member);
+    }
+
+    public JwtToken refreshToken() {
+        return null;
     }
 
     /**
      * 인증 정보를 담고 있는 JWT 액세스 토큰을 생성한다.
      */
-    private String generateAccessToken(Member member) {
+    private JwtToken generateToken(Member member) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(member.getEmail(), null);
         Authentication authenticate = authenticationProvider.authenticate(authenticationToken);
-        String accessToken = jwtTokenProvider.generateAccessToken(authenticate);
-        return accessToken;
+        return jwtTokenProvider.generateToken(authenticate);
     }
 
     /**

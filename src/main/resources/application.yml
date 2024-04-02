@@ -13,8 +13,11 @@ spring:
       ddl-auto: none
 
 jwt:
-  secret: YWU3NWQ2ZTkxZDA5ZTkwZjVjMWY1ZTI0NWM1NTc3ZGViYjFkOWQ1YWE0MGM5NDNiYzNjMGVkNjgyMmJiYTVhMgo=
-  accessToken-expiration-millisecond: 3600 # 1시간
+  secret.access-token: 60VP+VFnf1cabbg8eVIv1JeVGjkPvVzk1fnHaKeUVqs=
+  secret.refresh-token: Yfz9ReJACNN7edAAQSLj6UQoz1MrjluvgQFSIoINOGlE=
+  # expiration-seconds.access-token: 3600 # 1시간
+  expiration-seconds.access-token: 30 # 테스트용 30초
+  expiration-seconds.refresh-token: 2592000 # 30일
 
 ---
 

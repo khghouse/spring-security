@@ -1,5 +1,6 @@
 package com.example.springsecurity.provider;
 
+import com.example.springsecurity.dto.response.JwtToken;
 import com.example.springsecurity.dto.response.SecurityUser;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -22,20 +23,28 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    @Value("${jwt.secret.access-token}")
+    private String accessTokenSecret;
 
-    @Value("${jwt.accessToken-expiration-millisecond}")
-    private Long accessTokenExpirationMillisecond;
+    @Value("${jwt.secret.refresh-token}")
+    private String refreshTokenSecret;
 
-    private SecretKey key;
+    @Value("${jwt.expiration-seconds.access-token}")
+    private Long accessTokenExpirationSeconds;
+
+    @Value("${jwt.expiration-seconds.refresh-token}")
+    private Long refreshTokenExpirationSeconds;
+
+    private SecretKey accessKey;
+    private SecretKey refreshKey;
 
     @PostConstruct
     void init() {
-        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+        this.accessKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(accessTokenSecret));
+        this.refreshKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshTokenSecret));
     }
 
-    public String generateAccessToken(Authentication authentication) {
+    public JwtToken generateToken(Authentication authentication) {
         // org.springframework.security.core.userdetails.User의 Set<GrantedAuthority> authorities
         String authorities = authentication.getAuthorities()
                 .stream()
@@ -44,14 +53,24 @@ public class JwtTokenProvider {
 
         SecurityUser securityUser = SecurityUser.of(authentication);
 
-        return Jwts.builder()
+        String accessToken = Jwts.builder()
                 .subject(authentication.getName())
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(accessKey)
                 .claim("memberId", securityUser.getMemberId())
                 .claim("email", securityUser.getEmail())
                 .claim("authorities", authorities)
-                .expiration(getExpiration(accessTokenExpirationMillisecond))
+                .expiration(getExpiration(accessTokenExpirationSeconds))
                 .compact();
+
+        String refreshToken = Jwts.builder()
+                .signWith(refreshKey)
+                .expiration(getExpiration(refreshTokenExpirationSeconds))
+                .compact();
+
+        return JwtToken.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     public Authentication getAuthentications(String accessToken) {
@@ -73,7 +92,7 @@ public class JwtTokenProvider {
 
     private Claims parseClaims(String accessToken) {
         return Jwts.parser()
-                .verifyWith(key)
+                .verifyWith(accessKey)
                 .build()
                 .parseSignedClaims(accessToken)
                 .getPayload();

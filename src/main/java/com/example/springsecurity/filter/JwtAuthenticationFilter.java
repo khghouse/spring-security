@@ -31,6 +31,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             Authentication authentication = jwtTokenProvider.getAuthentications(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
+
+        // uri가 /auth/refresh/token이면 header에 포함된 토큰값으로 리프레쉬 토큰 유효성 체크
+
         chain.doFilter(request, response);
     }
 
