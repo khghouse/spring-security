@@ -16,3 +16,8 @@ Content-Type: application/json
   "email" : "khghouse@daum.net",
   "password" : "Khghouse12!@"
 }
+
+### 토큰 재발행
+POST localhost:8080/auth/token/reissue
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJtZW1iZXJJZCI6MSwiZXhwIjoxNzE0NzgzNDMwfQ.VI_yKrapULguHkAZ3T6M8MsHNXcIMglNOvjpPmWpm1w

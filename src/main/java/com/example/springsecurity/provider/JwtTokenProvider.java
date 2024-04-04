@@ -6,6 +6,8 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,6 +15,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.util.Arrays;
@@ -20,6 +23,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Component
 public class JwtTokenProvider {
 
@@ -64,6 +68,7 @@ public class JwtTokenProvider {
 
         String refreshToken = Jwts.builder()
                 .signWith(refreshKey)
+                .claim("memberId", securityUser.getMemberId())
                 .expiration(getExpiration(refreshTokenExpirationSeconds))
                 .compact();
 
@@ -74,7 +79,7 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentications(String accessToken) {
-        Claims claims = parseClaims(accessToken);
+        Claims claims = parseClaims(accessToken, accessKey);
 
         if (claims.get("authorities") == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
@@ -90,27 +95,66 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(securityUser, null, authorities);
     }
 
-    private Claims parseClaims(String accessToken) {
+    public Long getMemberIdByRefreshToken(String refreshToken) {
+        Claims claims = parseClaims(refreshToken, refreshKey);
+        return claims.get("memberId", Long.class);
+    }
+
+    private Claims parseClaims(String token, SecretKey key) {
         return Jwts.parser()
-                .verifyWith(accessKey)
+                .verifyWith(key)
                 .build()
-                .parseSignedClaims(accessToken)
+                .parseSignedClaims(token)
                 .getPayload();
     }
 
     public boolean validateToken(String token) {
         try {
-            parseClaims(token);
+            parseClaims(token, accessKey);
             return true;
         } catch (SecurityException | MalformedJwtException e) {
-            throw new RuntimeException("Invalid JWT Token", e);
+            log.info("[Invalid JWT Token] ", e);
         } catch (ExpiredJwtException e) {
-            throw new RuntimeException("Expired JWT Token", e);
+            log.info("[Expired JWT Token] ", e);
         } catch (UnsupportedJwtException e) {
-            throw new RuntimeException("Unsupported JWT Token", e);
+            log.info("[Unsupported JWT Token] ", e);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("JWT claims string is empty", e);
+            log.info("[JWT claims string is empty] ", e);
+        } catch (Exception e) {
+            log.info("[Invalid JWT Token] ", e);
         }
+
+        return false;
+    }
+
+    public boolean validateTokenByRefreshToken(String token) {
+        try {
+            parseClaims(token, refreshKey);
+            return true;
+        } catch (SecurityException | MalformedJwtException e) {
+            log.info("[Invalid JWT Token] ", e);
+        } catch (ExpiredJwtException e) {
+            log.info("[Expired JWT Token] ", e);
+        } catch (UnsupportedJwtException e) {
+            log.info("[Unsupported JWT Token] ", e);
+        } catch (IllegalArgumentException e) {
+            log.info("[JWT claims string is empty] ", e);
+        } catch (Exception e) {
+            log.info("[Invalid JWT Token] ", e);
+        }
+
+        return false;
+    }
+
+    /**
+     * 해더에서 토큰 값만 추출
+     */
+    public String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 
     private Date getExpiration(Long millisecond) {

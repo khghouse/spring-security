@@ -5,6 +5,7 @@ import com.example.springsecurity.dto.response.JwtToken;
 import com.example.springsecurity.entity.Member;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import com.example.springsecurity.repository.MemberRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,8 +41,21 @@ public class AuthService {
         return generateToken(member);
     }
 
-    public JwtToken refreshToken() {
-        return null;
+    /**
+     * 리프레쉬 토큰을 이용하여 토큰을 재발행한다.
+     */
+    public JwtToken reissueToken(HttpServletRequest request) {
+        String refreshToken = jwtTokenProvider.resolveToken(request);
+
+        if (refreshToken == null || !jwtTokenProvider.validateTokenByRefreshToken(refreshToken)) {
+            throw new RuntimeException("인증 정보가 유효하지 않습니다.");
+        }
+
+        Long memberId = jwtTokenProvider.getMemberIdByRefreshToken(refreshToken);
+        Member member = memberRepository.findByIdAndDeletedFalse(memberId)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 계정입니다."));
+
+        return generateToken(member);
     }
 
     /**

@@ -2,6 +2,7 @@ package com.example.springsecurity.api;
 
 import com.example.springsecurity.dto.request.AuthRequest;
 import com.example.springsecurity.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,9 +28,9 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request.toServiceRequest()));
     }
 
-    @PostMapping("/refresh/token")
-    public ResponseEntity refreshToken() {
-        return ResponseEntity.ok(authService.refreshToken());
+    @PostMapping("/token/reissue")
+    public ResponseEntity reissueToken(HttpServletRequest request) {
+        return ResponseEntity.ok(authService.reissueToken(request));
     }
 
 }
