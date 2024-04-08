@@ -1,6 +1,7 @@
 package com.example.springsecurity.api;
 
 import com.example.springsecurity.dto.request.AuthRequest;
+import com.example.springsecurity.provider.JwtTokenProvider;
 import com.example.springsecurity.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/signup")
     public ResponseEntity signup(@RequestBody AuthRequest request) {
@@ -30,7 +32,8 @@ public class AuthController {
 
     @PostMapping("/token/reissue")
     public ResponseEntity reissueToken(HttpServletRequest request) {
-        return ResponseEntity.ok(authService.reissueToken(request));
+        String refreshToken = jwtTokenProvider.resolveToken(request);
+        return ResponseEntity.ok(authService.reissueToken(refreshToken));
     }
 
 }
