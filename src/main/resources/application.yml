@@ -1,6 +1,7 @@
 spring:
   profiles:
-    default: local
+    active: local # default로 사용될 프로파일 명시
+    # include: redis # 분리되어 있는 application-redis.yml를 포함
 
   datasource:
     url: jdbc:h2:mem:security
@@ -12,6 +13,12 @@ spring:
     hibernate:
       ddl-auto: none
 
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password:
+
 jwt:
   secret.access-token: 60VP+VFnf1cabbg8eVIv1JeVGjkPvVzk1fnHaKeUVqs=
   secret.refresh-token: Yfz9ReJACNN7edAAQSLj6UQoz1MrjluvgQFSIoINOGlE=
@@ -19,11 +26,12 @@ jwt:
   expiration-seconds.access-token: 30 # 테스트용 30초
   expiration-seconds.refresh-token: 2592000 # 30일
 
----
+--- # 프로파일을 구분
 
 spring:
-  profiles:
-    default: local
+  config:
+    activate:
+      on-profile: local # 해당 프로파일이 선택되었을 때만 활성화
 
   jpa:
     hibernate:
@@ -41,8 +49,9 @@ spring:
 ---
 
 spring:
-  profiles:
-    default: test
+  config:
+    activate:
+      on-profile: test
 
   jpa:
     hibernate:
