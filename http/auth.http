@@ -20,4 +20,8 @@ Content-Type: application/json
 ### 토큰 재발행
 POST localhost:8080/auth/token/reissue
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJtZW1iZXJJZCI6MSwiZXhwIjoxNzE0NzgzNDMwfQ.VI_yKrapULguHkAZ3T6M8MsHNXcIMglNOvjpPmWpm1w
+
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJraGdob3VzZUBkYXVtLm5ldCIsIm1lbWJlcklkIjoxLCJlbWFpbCI6ImtoZ2hvdXNlQGRhdW0ubmV0IiwiYXV0aG9yaXRpZXMiOiJST0xFX1VTRVIiLCJleHAiOjE3MTI5Mjg0NDl9._k2AxIpV-W6kyqoczPJ1OKpDuy2IKvh8wEWkhBPzzIc",
+  "refreshToken": "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3MTU1MjA0MTl9.JRrCN1TjAD_dicoR5GG242Z7NwdTZsMJvhVUFK5hncM"
+}

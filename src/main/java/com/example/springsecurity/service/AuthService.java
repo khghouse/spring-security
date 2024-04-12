@@ -1,11 +1,14 @@
 package com.example.springsecurity.service;
 
 import com.example.springsecurity.dto.request.AuthServiceRequest;
+import com.example.springsecurity.dto.request.ReissueServiceRequest;
 import com.example.springsecurity.dto.response.JwtToken;
 import com.example.springsecurity.entity.Member;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import com.example.springsecurity.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,24 +17,34 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AuthService {
 
+    private final String PREFIX_REDIS_KEY_REFRESH_TOKEN = "refreshToken:";
+
     private final MemberRepository memberRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final PasswordEncoder passwordEncoder;
     private final AuthenticationProvider authenticationProvider;
+    private final PasswordEncoder passwordEncoder;
+    private final RedisTemplate redisTemplate;
 
+    /**
+     * 회원 가입
+     */
     @Transactional
     public void signup(AuthServiceRequest request) {
         validateAlreadyJoinedMember(request.getEmail());
-
-        memberRepository.save(request.toEntity(passwordEncoder.encode(request.getPassword())));
+        String encryptedPassword = passwordEncoder.encode(request.getPassword());
+        memberRepository.save(request.toEntity(encryptedPassword));
     }
 
+    /**
+     * 로그인
+     */
     public JwtToken login(AuthServiceRequest request) {
         Member member = memberRepository.findByEmailAndDeletedFalse(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 계정입니다."));
@@ -40,22 +53,40 @@ public class AuthService {
             throw new RuntimeException("아이디와 비밀번호를 다시 확인해 주세요.");
         }
 
-        return generateToken(member);
+        // 토큰 생성
+        JwtToken jwtToken = generateToken(member);
+
+        // 리프레쉬 토큰을 레디스에 저장
+        redisTemplate.opsForValue()
+                .set(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId(), jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationTime(), TimeUnit.MILLISECONDS);
+
+        return jwtToken;
     }
 
     /**
      * 리프레쉬 토큰을 이용하여 토큰을 재발행한다.
      */
-    public JwtToken reissueToken(String refreshToken) {
-        if (refreshToken == null || !jwtTokenProvider.validateTokenByRefreshToken(refreshToken)) {
+    public JwtToken reissueToken(ReissueServiceRequest request) {
+        String refreshToken = request.getRefreshToken();
+        if (!jwtTokenProvider.validateTokenByRefreshToken(refreshToken)) {
             throw new RuntimeException("인증 정보가 유효하지 않습니다.");
         }
 
-        Long memberId = jwtTokenProvider.getMemberIdByRefreshToken(refreshToken);
+        Long memberId = jwtTokenProvider.getMemberIdByAccessToken(request.getAccessToken());
         Member member = memberRepository.findByIdAndDeletedFalse(memberId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 계정입니다."));
 
-        return generateToken(member);
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        String redisRefreshToken = valueOperations.get(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId());
+
+        if (!refreshToken.equals(redisRefreshToken)) {
+            throw new RuntimeException("인증 정보가 유효하지 않습니다.");
+        }
+
+        JwtToken jwtToken = generateToken(member);
+        valueOperations.set(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId(), jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationTime(), TimeUnit.MILLISECONDS);
+
+        return jwtToken;
     }
 
     /**

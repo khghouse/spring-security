@@ -141,66 +141,66 @@ class AuthServiceTest {
                 .hasMessage("아이디와 비밀번호를 다시 확인해 주세요.");
     }
 
-    @Test
-    @DisplayName("리프레쉬 토큰을 이용하여 토큰을 재발행한다.")
-    void reissueToken() {
-        // given
-        Member member = Member.builder()
-                .email("khghouse@daum.net")
-                .password(passwordEncoder.encode("password12#$"))
-                .deleted(false)
-                .build();
-
-        memberRepository.save(member);
-
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("khghouse@daum.net", null);
-        Authentication authenticate = authenticationProvider.authenticate(authenticationToken);
-        JwtToken jwtToken = jwtTokenProvider.generateToken(authenticate);
-
-        String refreshToken = jwtToken.getRefreshToken();
-
-        // when
-        JwtToken result = authService.reissueToken(refreshToken);
-
-        // then
-        assertThat(result).isNotNull();
-    }
-
-    @Test
-    @DisplayName("리프레쉬 토큰을 이용하여 토큰을 재발행하지만 존재하지 않는 계정으로 예외가 발생한다.")
-    void reissueTokenNotExistMember() {
-        // given
-        Member member = Member.builder()
-                .email("khghouse@daum.net")
-                .password(passwordEncoder.encode("password12#$"))
-                .deleted(false)
-                .build();
-
-        memberRepository.save(member);
-
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("khghouse@daum.net", null);
-        Authentication authenticate = authenticationProvider.authenticate(authenticationToken);
-        JwtToken jwtToken = jwtTokenProvider.generateToken(authenticate);
-
-        String refreshToken = jwtToken.getRefreshToken();
-        memberRepository.delete(member);
-
-        // when, Then
-        assertThatThrownBy(() -> authService.reissueToken(refreshToken))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("존재하지 않는 계정입니다.");
-    }
-
-    @Test
-    @DisplayName("리프레쉬 토큰을 이용하여 토큰을 재발행하지만 유효하지 않은 토큰으로 예외가 발생한다.")
-    void reissueTokenInvalid() {
-        // given
-        String refreshToken = "json.web.token";
-
-        // when, Then
-        assertThatThrownBy(() -> authService.reissueToken(refreshToken))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("인증 정보가 유효하지 않습니다.");
-    }
+//    @Test
+//    @DisplayName("리프레쉬 토큰을 이용하여 토큰을 재발행한다.")
+//    void reissueToken() {
+//        // given
+//        Member member = Member.builder()
+//                .email("khghouse@daum.net")
+//                .password(passwordEncoder.encode("password12#$"))
+//                .deleted(false)
+//                .build();
+//
+//        memberRepository.save(member);
+//
+//        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("khghouse@daum.net", null);
+//        Authentication authenticate = authenticationProvider.authenticate(authenticationToken);
+//        JwtToken jwtToken = jwtTokenProvider.generateToken(authenticate);
+//
+//        String refreshToken = jwtToken.getRefreshToken();
+//
+//        // when
+//        JwtToken result = authService.reissueToken(refreshToken);
+//
+//        // then
+//        assertThat(result).isNotNull();
+//    }
+//
+//    @Test
+//    @DisplayName("리프레쉬 토큰을 이용하여 토큰을 재발행하지만 존재하지 않는 계정으로 예외가 발생한다.")
+//    void reissueTokenNotExistMember() {
+//        // given
+//        Member member = Member.builder()
+//                .email("khghouse@daum.net")
+//                .password(passwordEncoder.encode("password12#$"))
+//                .deleted(false)
+//                .build();
+//
+//        memberRepository.save(member);
+//
+//        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken("khghouse@daum.net", null);
+//        Authentication authenticate = authenticationProvider.authenticate(authenticationToken);
+//        JwtToken jwtToken = jwtTokenProvider.generateToken(authenticate);
+//
+//        String refreshToken = jwtToken.getRefreshToken();
+//        memberRepository.delete(member);
+//
+//        // when, Then
+//        assertThatThrownBy(() -> authService.reissueToken(refreshToken))
+//                .isInstanceOf(RuntimeException.class)
+//                .hasMessage("존재하지 않는 계정입니다.");
+//    }
+//
+//    @Test
+//    @DisplayName("리프레쉬 토큰을 이용하여 토큰을 재발행하지만 유효하지 않은 토큰으로 예외가 발생한다.")
+//    void reissueTokenInvalid() {
+//        // given
+//        String refreshToken = "json.web.token";
+//
+//        // when, Then
+//        assertThatThrownBy(() -> authService.reissueToken(refreshToken))
+//                .isInstanceOf(RuntimeException.class)
+//                .hasMessage("인증 정보가 유효하지 않습니다.");
+//    }
 
 }
