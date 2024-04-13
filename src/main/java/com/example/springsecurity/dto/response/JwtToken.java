@@ -15,6 +15,6 @@ public class JwtToken {
     private final String refreshToken;
 
     @JsonIgnore
-    private final Long refreshTokenExpirationTime;
+    private final Long refreshTokenExpirationSeconds;
 
 }

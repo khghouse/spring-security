@@ -23,8 +23,9 @@ jwt:
   secret.access-token: 60VP+VFnf1cabbg8eVIv1JeVGjkPvVzk1fnHaKeUVqs=
   secret.refresh-token: Yfz9ReJACNN7edAAQSLj6UQoz1MrjluvgQFSIoINOGlE=
   # expiration-seconds.access-token: 3600 # 1시간
-  expiration-seconds.access-token: 30 # 테스트용 30초
   expiration-seconds.refresh-token: 2592000 # 30일
+  expiration-seconds.access-token: 30 # 테스트용 30초
+  # expiration-seconds.refresh-token: 30 # 테스트용 30초
 
 --- # 프로파일을 구분
 

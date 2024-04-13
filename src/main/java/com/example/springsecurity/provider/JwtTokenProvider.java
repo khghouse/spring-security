@@ -72,16 +72,15 @@ public class JwtTokenProvider {
                 .expiration(generateExpiration(accessTokenExpirationSeconds))
                 .compact();
 
-        Date refreshTokenExpiration = generateExpiration(refreshTokenExpirationSeconds);
         String refreshToken = Jwts.builder()
                 .signWith(refreshKey)
-                .expiration(refreshTokenExpiration)
+                .expiration(generateExpiration(refreshTokenExpirationSeconds))
                 .compact();
 
         return JwtToken.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .refreshTokenExpirationTime(refreshTokenExpiration.getTime())
+                .refreshTokenExpirationSeconds(refreshTokenExpirationSeconds)
                 .build();
     }
 
@@ -103,20 +102,24 @@ public class JwtTokenProvider {
     }
 
     public Long getMemberIdByAccessToken(String accessToken) {
-        Claims claims = parseClaims(accessToken, accessKey);
-        return claims.get("memberId", Long.class);
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(accessKey)
+                    .build()
+                    .parseSignedClaims(accessToken)
+                    .getPayload();
+            return claims.get("memberId", Long.class);
+        } catch (ExpiredJwtException e) {
+            return e.getClaims().get("memberId", Long.class);
+        }
     }
 
     private Claims parseClaims(String token, SecretKey key) {
-        try {
-            return Jwts.parser()
-                    .verifyWith(key)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-        } catch (ExpiredJwtException e) {
-            return e.getClaims();
-        }
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public boolean validateToken(String token) {

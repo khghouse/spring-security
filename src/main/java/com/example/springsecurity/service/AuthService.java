@@ -57,8 +57,9 @@ public class AuthService {
         JwtToken jwtToken = generateToken(member);
 
         // 리프레쉬 토큰을 레디스에 저장
+        // .set(key, value, now() + TimeUnit Value, TimeUnit)
         redisTemplate.opsForValue()
-                .set(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId(), jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationTime(), TimeUnit.MILLISECONDS);
+                .set(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId(), jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationSeconds(), TimeUnit.SECONDS);
 
         return jwtToken;
     }
@@ -84,7 +85,7 @@ public class AuthService {
         }
 
         JwtToken jwtToken = generateToken(member);
-        valueOperations.set(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId(), jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationTime(), TimeUnit.MILLISECONDS);
+        valueOperations.set(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId(), jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationSeconds(), TimeUnit.SECONDS);
 
         return jwtToken;
     }
