@@ -3,6 +3,7 @@ package com.example.springsecurity.service;
 import com.example.springsecurity.dto.request.AuthServiceRequest;
 import com.example.springsecurity.dto.request.ReissueServiceRequest;
 import com.example.springsecurity.dto.response.JwtToken;
+import com.example.springsecurity.dto.response.SecurityUser;
 import com.example.springsecurity.entity.Member;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import com.example.springsecurity.repository.MemberRepository;
@@ -88,6 +89,25 @@ public class AuthService {
         valueOperations.set(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId(), jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationSeconds(), TimeUnit.SECONDS);
 
         return jwtToken;
+    }
+
+    /**
+     * 로그아웃
+     */
+    public void logout(String accessToken) {
+        if (!jwtTokenProvider.validateToken(accessToken)) {
+            throw new RuntimeException("인증 정보가 유효하지 않습니다.");
+        }
+
+        Authentication authentication = jwtTokenProvider.getAuthentications(accessToken);
+        SecurityUser member = (SecurityUser) authentication.getPrincipal();
+
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        if (valueOperations.get(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getMemberId()) != null) {
+            redisTemplate.delete(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getMemberId());
+        }
+
+        valueOperations.set(accessToken, "logout");
     }
 
     /**

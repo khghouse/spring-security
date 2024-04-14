@@ -114,14 +114,6 @@ public class JwtTokenProvider {
         }
     }
 
-    private Claims parseClaims(String token, SecretKey key) {
-        return Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-    }
-
     public boolean validateToken(String token) {
         try {
             parseClaims(token, accessKey);
@@ -169,6 +161,14 @@ public class JwtTokenProvider {
             return token.substring(BEARER_TYPE.length() + 1);
         }
         return null;
+    }
+
+    private Claims parseClaims(String token, SecretKey key) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     /**

@@ -2,7 +2,9 @@ package com.example.springsecurity.api;
 
 import com.example.springsecurity.dto.request.AuthRequest;
 import com.example.springsecurity.dto.request.ReissueRequest;
+import com.example.springsecurity.provider.JwtTokenProvider;
 import com.example.springsecurity.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/signup")
     public ResponseEntity signup(@RequestBody AuthRequest request) {
@@ -31,6 +34,13 @@ public class AuthController {
     @PostMapping("/token/reissue")
     public ResponseEntity reissueToken(@RequestBody ReissueRequest request) {
         return ResponseEntity.ok(authService.reissueToken(request.toServiceRequest()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity logout(HttpServletRequest request) {
+        String accessToken = jwtTokenProvider.resolveToken(request);
+        authService.logout(accessToken);
+        return ResponseEntity.ok(null);
     }
 
 }
