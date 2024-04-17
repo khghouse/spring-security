@@ -25,18 +25,18 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
-        // JWT 토큰 추출
+        // 1. Request 객체로부터 헤더에 포함된 액세스 토큰을 추출
         String token = jwtTokenProvider.resolveToken((HttpServletRequest) request);
 
-        // JWT 토큰 유효성 체크
+        // 2. JWT 유효성 체크
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            // 로그아웃된 토큰인지 체크
+            // 3. 해당 액세스 토큰으로 레디스를 조회하여 로그아웃된 토큰인지 체크
             String status = Optional.ofNullable(redisTemplate.opsForValue().get(token))
                     .map(String::valueOf)
                     .orElse(null);
 
             if (!"logout".equals(status)) {
-                // 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext에 저장
+                // 4. 액세스 토큰에 포함된 클레임 정보를 이용하여 Authentication 객체 생성 및 시큐리티 컨텍스트에 저장
                 Authentication authentication = jwtTokenProvider.getAuthentications(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }

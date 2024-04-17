@@ -4,6 +4,7 @@ import com.example.springsecurity.dto.request.AuthServiceRequest;
 import com.example.springsecurity.dto.request.ReissueServiceRequest;
 import com.example.springsecurity.dto.response.JwtToken;
 import com.example.springsecurity.entity.Member;
+import com.example.springsecurity.exception.BusinessException;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import com.example.springsecurity.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
-class AuthServiRceTest {
+class AuthServiceTest {
 
     private final String PREFIX_REDIS_KEY_REFRESH_TOKEN = "refreshToken:";
 
@@ -123,7 +124,7 @@ class AuthServiRceTest {
 
         // when, then
         assertThatThrownBy(() -> authService.login(request))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("존재하지 않는 계정입니다.");
     }
 
@@ -137,16 +138,15 @@ class AuthServiRceTest {
                 .deleted(false)
                 .build();
 
-        memberRepository.save(member);
-
         AuthServiceRequest request = AuthServiceRequest.builder()
                 .email("khghouse@daum.net")
                 .password("password123#$")
                 .build();
 
+        authService.login(request);
         // when, then
         assertThatThrownBy(() -> authService.login(request))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("아이디와 비밀번호를 다시 확인해 주세요.");
     }
 

@@ -2,6 +2,7 @@ package com.example.springsecurity.handler;
 
 import com.example.springsecurity.dto.response.ApiResponse;
 import com.example.springsecurity.exception.BadRequestException;
+import com.example.springsecurity.exception.BusinessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,6 +25,12 @@ public class ExceptionAdvice {
     @ExceptionHandler(BadRequestException.class)
     public ApiResponse badRequestException(BadRequestException e) {
         return ApiResponse.badRequest(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ExceptionHandler(BusinessException.class)
+    public ApiResponse businessException(BusinessException e) {
+        return ApiResponse.business(e.getMessage());
     }
 
 }

@@ -5,6 +5,7 @@ import com.example.springsecurity.dto.request.ReissueServiceRequest;
 import com.example.springsecurity.dto.response.JwtToken;
 import com.example.springsecurity.dto.response.SecurityUser;
 import com.example.springsecurity.entity.Member;
+import com.example.springsecurity.exception.BusinessException;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import com.example.springsecurity.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,10 +49,10 @@ public class AuthService {
      */
     public JwtToken login(AuthServiceRequest request) {
         Member member = memberRepository.findByEmailAndDeletedFalse(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 계정입니다."));
+                .orElseThrow(() -> new BusinessException("존재하지 않는 계정입니다."));
 
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
-            throw new RuntimeException("아이디와 비밀번호를 다시 확인해 주세요.");
+            throw new BusinessException("아이디와 비밀번호를 다시 확인해 주세요.");
         }
 
         // 토큰 생성

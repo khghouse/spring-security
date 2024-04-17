@@ -32,4 +32,8 @@ public class ApiResponse {
         return new ApiResponse(HttpStatus.BAD_REQUEST.value(), null, error);
     }
 
+    public static ApiResponse business(Object error) {
+        return new ApiResponse(HttpStatus.UNPROCESSABLE_ENTITY.value(), null, error);
+    }
+
 }
