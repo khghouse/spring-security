@@ -48,10 +48,21 @@
 
 <br />
 
+## 로그아웃 프로세스
+
+1. 요청 헤더를 통해 액세스 토큰을 전달받는다.
+2. 액세스 토큰 JWT 유효성 체크
+3. 액세스 토큰의 클레임 정보를 추출하여 인증 객체 생성
+4. 인증 객체에서 회원 정보 추출
+5. 해당 회원의 리프레쉬 토큰을 레디스에서 조회 및 삭제
+6. 액세스 토큰을 레디스에 저장 → 블랙 리스트 처리
+
+<br />
+
 ### 참고 자료
 - https://www.inflearn.com/course/호돌맨-요절복통-개발쇼
 - https://suddiyo.tistory.com/entry/Spring-Spring-Security-JWT-로그인-구현하기-1
 - https://velog.io/@wonizizi99/Spring-Jwt-방식-인증방식-Security-로그인-로그아웃
 - https://hello-judy-world.tistory.com/216
 - https://velog.io/@hiy7030/Spring-Spring-Security-%EA%B8%B0%EB%B3%B8-2-qdx7xe2j
-
+- https://green-bin.tistory.com/73
