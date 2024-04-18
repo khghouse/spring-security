@@ -55,7 +55,7 @@ public class JwtTokenProvider {
      * 토큰을 생성한다.
      */
     public JwtToken generateToken(Authentication authentication) {
-        // org.springframework.security.core.userdetails.User의 Set<GrantedAuthority> authorities
+        // 인증 객체에서 권한 정보를 추출
         String authorities = authentication.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
@@ -63,6 +63,7 @@ public class JwtTokenProvider {
 
         SecurityUser securityUser = SecurityUser.of(authentication);
 
+        // 액세스 토큰 생성
         String accessToken = Jwts.builder()
                 .subject(authentication.getName())
                 .signWith(accessKey)
@@ -72,6 +73,7 @@ public class JwtTokenProvider {
                 .expiration(generateExpiration(accessTokenExpirationSeconds))
                 .compact();
 
+        // 리프레쉬 토큰 생성
         String refreshToken = Jwts.builder()
                 .signWith(refreshKey)
                 .expiration(generateExpiration(refreshTokenExpirationSeconds))

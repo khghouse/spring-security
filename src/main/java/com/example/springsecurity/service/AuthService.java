@@ -48,18 +48,20 @@ public class AuthService {
      * 로그인
      */
     public JwtToken login(AuthServiceRequest request) {
+        // 회원 인증 : 아이디에 해당하는 회원이 존재하는지 체크
         Member member = memberRepository.findByEmailAndDeletedFalse(request.getEmail())
                 .orElseThrow(() -> new BusinessException("존재하지 않는 계정입니다."));
 
+        // 회원 인증 : 비밀번호가 일치하는지 체크
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new BusinessException("아이디와 비밀번호를 다시 확인해 주세요.");
         }
 
-        // 토큰 생성
+        // JWT 생성
         JwtToken jwtToken = generateToken(member);
 
         // 리프레쉬 토큰을 레디스에 저장
-        // .set(key, value, now() + TimeUnit Value, TimeUnit)
+        // redisTemplate.opsForValue().set(key, value, now() + TimeUnit Value, TimeUnit)
         redisTemplate.opsForValue()
                 .set(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId(), jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationSeconds(), TimeUnit.SECONDS);
 
@@ -67,26 +69,36 @@ public class AuthService {
     }
 
     /**
-     * 리프레쉬 토큰을 이용하여 토큰을 재발행한다.
+     * 토큰 재발행
      */
     public JwtToken reissueToken(ReissueServiceRequest request) {
         String refreshToken = request.getRefreshToken();
+
+        // 리프레쉬 토큰 JWT 유효성 체크
         if (!jwtTokenProvider.validateTokenByRefreshToken(refreshToken)) {
             throw new RuntimeException("인증 정보가 유효하지 않습니다.");
         }
 
+        // 만료된 액세스 토큰에서 회원을 식별할 수 있는 정보 추출
         Long memberId = jwtTokenProvider.getMemberIdByAccessToken(request.getAccessToken());
+
+        // 회원 정보 조회
         Member member = memberRepository.findByIdAndDeletedFalse(memberId)
                 .orElseThrow(() -> new RuntimeException("존재하지 않는 계정입니다."));
 
+        // 리프레쉬 토큰 비교 : 해당 회원의 리프레쉬 토큰을 레디스에서 조회
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
         String redisRefreshToken = valueOperations.get(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId());
 
+        // // 리프레쉬 토큰 비교 : 클라이언트로 전달받은 리프레쉬 토큰과 비교
         if (!refreshToken.equals(redisRefreshToken)) {
             throw new RuntimeException("인증 정보가 유효하지 않습니다.");
         }
 
+        // JWT 생성
         JwtToken jwtToken = generateToken(member);
+
+        // 리프레쉬 토큰을 레디스에 저장
         valueOperations.set(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId(), jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationSeconds(), TimeUnit.SECONDS);
 
         return jwtToken;
@@ -96,27 +108,38 @@ public class AuthService {
      * 로그아웃
      */
     public void logout(String accessToken) {
+        // 액세스 토큰 JWT 유효성 체크
         if (!jwtTokenProvider.validateToken(accessToken)) {
             throw new RuntimeException("인증 정보가 유효하지 않습니다.");
         }
 
+        // 액세스 토큰의 클레임 정보를 추출하여 인증 객체 생성
         Authentication authentication = jwtTokenProvider.getAuthentications(accessToken);
+
+        // 인증 객체에서 회원 정보 추출
         SecurityUser member = (SecurityUser) authentication.getPrincipal();
 
         ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        // 해당 회원의 리프레쉬 토큰을 레디스에서 조회 및 삭제
         if (valueOperations.get(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getMemberId()) != null) {
             redisTemplate.delete(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getMemberId());
         }
 
+        // 액세스 토큰을 레디스에 저장, 블랙 리스트 처리
         valueOperations.set(accessToken, "logout");
     }
 
     /**
-     * 인증 정보를 담고 있는 JWT 액세스 토큰을 생성한다.
+     * 인증 정보를 담고 있는 JWT를 생성한다.
      */
     private JwtToken generateToken(Member member) {
+        // UsernamePasswordAuthenticationToken 초기 인증 객체 생성 (권한 정보 없음)
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(member.getEmail(), null);
+
+        // SecurityAuthenticationProvider에 인증을 요청
         Authentication authenticate = authenticationProvider.authenticate(authenticationToken);
+
+        // 토큰 생성
         return jwtTokenProvider.generateToken(authenticate);
     }
 
