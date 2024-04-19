@@ -1,5 +1,6 @@
 package com.example.springsecurity.service;
 
+import com.example.springsecurity.component.Redis;
 import com.example.springsecurity.dto.request.AuthServiceRequest;
 import com.example.springsecurity.dto.request.ReissueServiceRequest;
 import com.example.springsecurity.dto.response.JwtToken;
@@ -11,15 +12,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -28,8 +26,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Transactional
 @ActiveProfiles("test")
 class AuthServiceTest {
-
-    private final String PREFIX_REDIS_KEY_REFRESH_TOKEN = "refreshToken:";
 
     @Autowired
     private AuthService authService;
@@ -47,7 +43,7 @@ class AuthServiceTest {
     private AuthenticationProvider authenticationProvider;
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    private Redis redis;
 
     @Test
     @DisplayName("회원 가입에 성공한다.")
@@ -138,12 +134,13 @@ class AuthServiceTest {
                 .deleted(false)
                 .build();
 
+        memberRepository.save(member);
+
         AuthServiceRequest request = AuthServiceRequest.builder()
                 .email("khghouse@daum.net")
                 .password("password123#$")
                 .build();
 
-        authService.login(request);
         // when, then
         assertThatThrownBy(() -> authService.login(request))
                 .isInstanceOf(BusinessException.class)
@@ -166,8 +163,7 @@ class AuthServiceTest {
         Authentication authenticate = authenticationProvider.authenticate(authenticationToken);
         JwtToken jwtToken = jwtTokenProvider.generateToken(authenticate);
 
-        redisTemplate.opsForValue()
-                .set(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId(), jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationSeconds(), TimeUnit.SECONDS);
+        redis.setRefreshToken(member.getId(), jwtToken.getRefreshToken());
 
         ReissueServiceRequest request = ReissueServiceRequest.builder()
                 .accessToken(jwtToken.getAccessToken())
@@ -180,6 +176,9 @@ class AuthServiceTest {
         // then
         assertThat(result.getAccessToken()).isNotNull();
         assertThat(result.getRefreshToken()).isNotNull();
+
+        // tearDown
+        redis.deleteRefreshToken(member.getId());
     }
 
     @Test
@@ -200,8 +199,7 @@ class AuthServiceTest {
 
         memberRepository.delete(member);
 
-        redisTemplate.opsForValue()
-                .set(PREFIX_REDIS_KEY_REFRESH_TOKEN + "1", jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationSeconds(), TimeUnit.SECONDS);
+        redis.setRefreshToken(member.getId(), jwtToken.getRefreshToken());
 
         ReissueServiceRequest request = ReissueServiceRequest.builder()
                 .accessToken(jwtToken.getAccessToken())
@@ -212,6 +210,9 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.reissueToken(request))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("존재하지 않는 계정입니다.");
+
+        // tearDown
+        redis.deleteRefreshToken(member.getId());
     }
 
     @Test
@@ -245,17 +246,18 @@ class AuthServiceTest {
         Authentication authenticate = authenticationProvider.authenticate(authenticationToken);
         JwtToken jwtToken = jwtTokenProvider.generateToken(authenticate);
 
-        redisTemplate.opsForValue()
-                .set(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId(), jwtToken.getRefreshToken(), jwtToken.getRefreshTokenExpirationSeconds(), TimeUnit.SECONDS);
-
+        redis.setRefreshToken(member.getId(), jwtToken.getRefreshToken());
         String accessToken = jwtToken.getAccessToken();
 
         // when
         authService.logout(accessToken);
 
         // then
-        assertThat(redisTemplate.opsForValue().get(accessToken)).isEqualTo("logout");
-        assertThat(redisTemplate.opsForValue().get(PREFIX_REDIS_KEY_REFRESH_TOKEN + member.getId())).isNull();
+        assertThat(redis.get(accessToken)).isEqualTo("logout");
+        assertThat(redis.get("refreshToken:" + member.getId())).isNull();
+
+        // tearDown
+        redis.deleteRefreshToken(member.getId());
     }
 
     @Test

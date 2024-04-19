@@ -7,6 +7,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,9 +37,11 @@ public class JwtTokenProvider {
     @Value("${jwt.secret.refresh-token}")
     private String refreshTokenSecret;
 
+    @Getter
     @Value("${jwt.expiration-seconds.access-token}")
     private Long accessTokenExpirationSeconds;
 
+    @Getter
     @Value("${jwt.expiration-seconds.refresh-token}")
     private Long refreshTokenExpirationSeconds;
 
@@ -82,7 +85,6 @@ public class JwtTokenProvider {
         return JwtToken.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .refreshTokenExpirationSeconds(refreshTokenExpirationSeconds)
                 .build();
     }
 

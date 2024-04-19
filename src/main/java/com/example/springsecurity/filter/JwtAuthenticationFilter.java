@@ -1,6 +1,7 @@
 package com.example.springsecurity.filter;
 
 
+import com.example.springsecurity.component.Redis;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -8,7 +9,6 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
@@ -20,7 +20,7 @@ import java.util.Optional;
 public class JwtAuthenticationFilter extends GenericFilterBean {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final RedisTemplate redisTemplate;
+    private final Redis redis;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -31,7 +31,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         // 2. JWT 유효성 체크
         if (token != null && jwtTokenProvider.validateToken(token)) {
             // 3. 해당 액세스 토큰으로 레디스를 조회하여 로그아웃된 토큰인지 체크
-            String status = Optional.ofNullable(redisTemplate.opsForValue().get(token))
+            String status = Optional.ofNullable(redis.get(token))
                     .map(String::valueOf)
                     .orElse(null);
 

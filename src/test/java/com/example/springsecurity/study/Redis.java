@@ -1,4 +1,4 @@
-package com.example.springsecurity.test;
+package com.example.springsecurity.study;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
-public class RedisTest {
+public class Redis {
 
     @Autowired
     private RedisTemplate redisTemplate;
