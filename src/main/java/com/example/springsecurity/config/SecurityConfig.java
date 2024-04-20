@@ -2,6 +2,7 @@ package com.example.springsecurity.config;
 
 import com.example.springsecurity.component.Redis;
 import com.example.springsecurity.filter.JwtAuthenticationFilter;
+import com.example.springsecurity.filter.JwtExceptionHandlerFilter;
 import com.example.springsecurity.handler.SecurityAccessDeniedHandler;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +49,7 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception.accessDeniedHandler(new SecurityAccessDeniedHandler(objectMapper)))
                 .userDetailsService(userDetailsService)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, redis), UsernamePasswordAuthenticationFilter.class) // UsernamePasswordAuthenticationFilter 실행 전에 JwtAuthenticationFilter를 실행
+                .addFilterBefore(new JwtExceptionHandlerFilter(), JwtAuthenticationFilter.class) // JwtAuthenticationFilter에서 발생한 예외를 처리하기 위해 JwtExceptionHandlerFilter를 먼저 실행한다.
                 .build();
     }
 

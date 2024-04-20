@@ -2,6 +2,9 @@ package com.example.springsecurity.provider;
 
 import com.example.springsecurity.dto.response.JwtToken;
 import com.example.springsecurity.dto.response.SecurityUser;
+import com.example.springsecurity.enumeration.JwtErrorCode;
+import com.example.springsecurity.exception.BusinessException;
+import com.example.springsecurity.exception.JwtException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -92,7 +95,7 @@ public class JwtTokenProvider {
         Claims claims = parseClaims(accessToken, accessKey);
 
         if (claims.get("authorities") == null) {
-            throw new RuntimeException("권한 정보가 없는 토큰입니다.");
+            throw new BusinessException("권한 정보가 없는 토큰입니다.");
         }
 
         // 클레임에서 권한 정보 가져오기
@@ -121,39 +124,31 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         try {
             parseClaims(token, accessKey);
-            return true;
-        } catch (SecurityException | MalformedJwtException e) {
-            log.info("[Invalid JWT Token] ", e);
+        } catch (MalformedJwtException e) {
+            throw new JwtException(JwtErrorCode.MALFORMED);
         } catch (ExpiredJwtException e) {
-            log.info("[Expired JWT Token] ", e);
+            throw new JwtException(JwtErrorCode.EXPIRED);
         } catch (UnsupportedJwtException e) {
-            log.info("[Unsupported JWT Token] ", e);
-        } catch (IllegalArgumentException e) {
-            log.info("[JWT claims string is empty] ", e);
+            throw new JwtException(JwtErrorCode.UNSUPPORTED);
         } catch (Exception e) {
-            log.info("[Invalid JWT Token] ", e);
+            throw new JwtException(JwtErrorCode.INVALID);
         }
 
-        return false;
+        return true;
     }
 
-    public boolean validateTokenByRefreshToken(String token) {
+    public void validateTokenByRefreshToken(String token) {
         try {
             parseClaims(token, refreshKey);
-            return true;
-        } catch (SecurityException | MalformedJwtException e) {
-            log.info("[Invalid JWT Token] ", e);
+        } catch (MalformedJwtException e) {
+            throw new JwtException(JwtErrorCode.MALFORMED);
         } catch (ExpiredJwtException e) {
-            log.info("[Expired JWT Token] ", e);
+            throw new JwtException(JwtErrorCode.EXPIRED);
         } catch (UnsupportedJwtException e) {
-            log.info("[Unsupported JWT Token] ", e);
-        } catch (IllegalArgumentException e) {
-            log.info("[JWT claims string is empty] ", e);
+            throw new JwtException(JwtErrorCode.UNSUPPORTED);
         } catch (Exception e) {
-            log.info("[Invalid JWT Token] ", e);
+            throw new JwtException(JwtErrorCode.INVALID);
         }
-
-        return false;
     }
 
     /**
@@ -164,7 +159,8 @@ public class JwtTokenProvider {
         if (StringUtils.hasText(token) && token.startsWith(BEARER_TYPE)) {
             return token.substring(BEARER_TYPE.length() + 1);
         }
-        return null;
+
+        throw new JwtException(JwtErrorCode.UNAUTHORIZED);
     }
 
     private Claims parseClaims(String token, SecretKey key) {

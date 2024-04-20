@@ -6,6 +6,7 @@ import com.example.springsecurity.dto.request.ReissueServiceRequest;
 import com.example.springsecurity.dto.response.JwtToken;
 import com.example.springsecurity.entity.Member;
 import com.example.springsecurity.exception.BusinessException;
+import com.example.springsecurity.exception.JwtException;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import com.example.springsecurity.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -58,7 +59,8 @@ class AuthServiceTest {
         authService.signup(request);
 
         // then
-        Member result = memberRepository.findByEmail("khghouse@daum.net").get();
+        Member result = memberRepository.findByEmail("khghouse@daum.net")
+                .orElseThrow(() -> new BusinessException("존재하지 않는 계정입니다."));
         assertThat(result).isNotNull();
     }
 
@@ -81,7 +83,7 @@ class AuthServiceTest {
 
         // when, then
         assertThatThrownBy(() -> authService.signup(request))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 가입된 이메일입니다.");
     }
 
@@ -208,7 +210,7 @@ class AuthServiceTest {
 
         // when, Then
         assertThatThrownBy(() -> authService.reissueToken(request))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("존재하지 않는 계정입니다.");
 
         // tearDown
@@ -226,8 +228,8 @@ class AuthServiceTest {
 
         // when, Then
         assertThatThrownBy(() -> authService.reissueToken(request))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("인증 정보가 유효하지 않습니다.");
+                .isInstanceOf(JwtException.class)
+                .hasMessage("손상된 토큰입니다.");
     }
 
     @Test
@@ -268,8 +270,8 @@ class AuthServiceTest {
 
         // when, Then
         assertThatThrownBy(() -> authService.logout(accessToken))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("인증 정보가 유효하지 않습니다.");
+                .isInstanceOf(JwtException.class)
+                .hasMessage("손상된 토큰입니다.");
     }
 
 }

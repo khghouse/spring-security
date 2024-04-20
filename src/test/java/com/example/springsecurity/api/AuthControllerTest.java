@@ -362,10 +362,10 @@ class AuthControllerTest {
         mockMvc.perform(post("/auth/logout")
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.status").value("401"))
                 .andExpect(jsonPath("$.data").isEmpty())
-                .andExpect(jsonPath("$.error").value("액세스 토큰을 입력해 주세요."));
+                .andExpect(jsonPath("$.error").value("인증되지 않은 요청입니다."));
     }
 
 }

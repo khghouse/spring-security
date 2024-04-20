@@ -1,5 +1,6 @@
 package com.example.springsecurity.component;
 
+import com.example.springsecurity.exception.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,7 +119,7 @@ class RedisTest {
 
         // when
         assertThatThrownBy(() -> redis.compareRefreshToken(2L, requestRefreshToken))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("인증 정보가 유효하지 않습니다.");
 
         // tearDown
@@ -136,7 +137,7 @@ class RedisTest {
 
         // when
         assertThatThrownBy(() -> redis.compareRefreshToken(1L, requestRefreshToken))
-                .isInstanceOf(RuntimeException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("인증 정보가 유효하지 않습니다.");
 
         // tearDown

@@ -7,6 +7,7 @@ import com.example.springsecurity.dto.response.JwtToken;
 import com.example.springsecurity.dto.response.SecurityUser;
 import com.example.springsecurity.entity.Member;
 import com.example.springsecurity.exception.BusinessException;
+import com.example.springsecurity.exception.JwtException;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import com.example.springsecurity.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -69,8 +70,10 @@ public class AuthService {
         String refreshToken = request.getRefreshToken();
 
         // 리프레쉬 토큰 JWT 유효성 체크
-        if (!jwtTokenProvider.validateTokenByRefreshToken(refreshToken)) {
-            throw new RuntimeException("인증 정보가 유효하지 않습니다.");
+        try {
+            jwtTokenProvider.validateTokenByRefreshToken(refreshToken);
+        } catch (JwtException e) {
+            throw new JwtException(e.getJwtErrorCode().getMessage());
         }
 
         // 만료된 액세스 토큰에서 회원을 식별할 수 있는 정보 추출
@@ -78,7 +81,7 @@ public class AuthService {
 
         // 회원 정보 조회
         Member member = memberRepository.findByIdAndDeletedFalse(memberId)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 계정입니다."));
+                .orElseThrow(() -> new BusinessException("존재하지 않는 계정입니다."));
 
         // 리프레쉬 토큰 비교
         redis.compareRefreshToken(memberId, refreshToken);
@@ -97,8 +100,10 @@ public class AuthService {
      */
     public void logout(String accessToken) {
         // 액세스 토큰 JWT 유효성 체크
-        if (!jwtTokenProvider.validateToken(accessToken)) {
-            throw new RuntimeException("인증 정보가 유효하지 않습니다.");
+        try {
+            jwtTokenProvider.validateToken(accessToken);
+        } catch (JwtException e) {
+            throw new JwtException(e.getJwtErrorCode().getMessage());
         }
 
         // 액세스 토큰의 클레임 정보를 추출하여 인증 객체 생성
@@ -135,7 +140,7 @@ public class AuthService {
         Optional<Member> optMember = memberRepository.findByEmailAndDeletedFalse(email);
 
         if (optMember.isPresent()) {
-            throw new RuntimeException("이미 가입된 이메일입니다.");
+            throw new BusinessException("이미 가입된 이메일입니다.");
         }
     }
 

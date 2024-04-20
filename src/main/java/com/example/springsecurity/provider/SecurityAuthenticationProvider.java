@@ -1,6 +1,7 @@
 package com.example.springsecurity.provider;
 
 import com.example.springsecurity.dto.response.SecurityUser;
+import com.example.springsecurity.exception.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -18,7 +19,7 @@ public class SecurityAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         if (!supports(authentication.getClass())) {
-            throw new RuntimeException("인증 정보가 유효하지 않습니다.");
+            throw new ForbiddenException("인증 정보가 유효하지 않습니다.");
         }
 
         // 초기 인증 토큰에서 Principal(접근 주체)의 아이디 추출

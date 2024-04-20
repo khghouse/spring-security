@@ -1,5 +1,6 @@
 package com.example.springsecurity.component;
 
+import com.example.springsecurity.exception.BusinessException;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -32,7 +33,7 @@ public class Redis {
 
         // 클라이언트로 전달받은 리프레쉬 토큰과 비교
         if (!refreshToken.equals(redisRefreshToken)) {
-            throw new RuntimeException("인증 정보가 유효하지 않습니다.");
+            throw new BusinessException("인증 정보가 유효하지 않습니다.");
         }
     }
 

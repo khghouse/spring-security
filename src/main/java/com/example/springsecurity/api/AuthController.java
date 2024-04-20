@@ -3,7 +3,7 @@ package com.example.springsecurity.api;
 import com.example.springsecurity.dto.request.AuthRequest;
 import com.example.springsecurity.dto.request.ReissueRequest;
 import com.example.springsecurity.dto.response.ApiResponse;
-import com.example.springsecurity.exception.BadRequestException;
+import com.example.springsecurity.exception.UnauthorizedException;
 import com.example.springsecurity.provider.JwtTokenProvider;
 import com.example.springsecurity.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,7 +43,7 @@ public class AuthController {
     public ApiResponse logout(HttpServletRequest request) {
         String accessToken = jwtTokenProvider.resolveToken(request);
         if (accessToken == null) {
-            throw new BadRequestException("액세스 토큰을 입력해 주세요.");
+            throw new UnauthorizedException("인증되지 않은 요청입니다.");
         }
         authService.logout(accessToken);
         return ApiResponse.ok();
