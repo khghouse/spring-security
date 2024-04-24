@@ -160,7 +160,7 @@ public class JwtTokenProvider {
             return token.substring(BEARER_TYPE.length() + 1);
         }
 
-        throw new JwtException(JwtErrorCode.UNAUTHORIZED);
+        return null;
     }
 
     private Claims parseClaims(String token, SecretKey key) {
