@@ -107,7 +107,7 @@ public class AuthService {
         }
 
         // 액세스 토큰의 클레임 정보를 추출하여 인증 객체 생성
-        Authentication authentication = jwtTokenProvider.getAuthentications(accessToken);
+        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
 
         // 인증 객체에서 회원 정보 추출
         SecurityUser member = (SecurityUser) authentication.getPrincipal();

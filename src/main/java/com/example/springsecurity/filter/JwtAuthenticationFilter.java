@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
             if (!"logout".equals(status)) {
                 // 4. 액세스 토큰에 포함된 클레임 정보를 이용하여 Authentication 객체 생성 및 시큐리티 컨텍스트에 저장
-                Authentication authentication = jwtTokenProvider.getAuthentications(token);
+                Authentication authentication = jwtTokenProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         }

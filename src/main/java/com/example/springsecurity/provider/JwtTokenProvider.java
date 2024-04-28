@@ -3,7 +3,7 @@ package com.example.springsecurity.provider;
 import com.example.springsecurity.dto.response.JwtToken;
 import com.example.springsecurity.dto.response.SecurityUser;
 import com.example.springsecurity.enumeration.JwtErrorCode;
-import com.example.springsecurity.exception.BusinessException;
+import com.example.springsecurity.exception.ForbiddenException;
 import com.example.springsecurity.exception.JwtException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -91,11 +91,11 @@ public class JwtTokenProvider {
                 .build();
     }
 
-    public Authentication getAuthentications(String accessToken) {
+    public Authentication getAuthentication(String accessToken) {
         Claims claims = parseClaims(accessToken, accessKey);
 
         if (claims.get("authorities") == null) {
-            throw new BusinessException("권한 정보가 없는 토큰입니다.");
+            throw new ForbiddenException("권한 정보가 없는 토큰입니다.");
         }
 
         // 클레임에서 권한 정보 가져오기
