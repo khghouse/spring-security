@@ -1,4 +1,21 @@
 
+## Spring Security
+Spring Security와 JWT를 활용하여 REST API 환경에서 사용자 인증·인가 시스템을 구현한 프로젝트입니다.
+
+<br />
+
+### 기술 스택
+
+| 카테고리 | 기술 |
+|---------|------|
+| **Backend** | Java 17, Spring Boot 3.2.4 |
+| **Security** | Spring Security 6.2.3, JWT (jjwt) |
+| **Database** | Spring Data JPA, H2 |
+| **Build Tool** | Gradle 8.6 |
+| **Testing** | JUnit 5, MockMvc |
+
+<br />
+
 #### 시큐리티 인터페이스 구현 클래스
 ```text
 * SecurityAuthenticationProvider -> AuthenticationProvider
@@ -6,7 +23,7 @@
 * SecurityUser -> UserDetails
 ```
 
-## 로그인 인증 흐름
+### 로그인 인증 흐름
 
 1. 클라이언트로부터 로그인할 아이디와 비밀번호를 전달받는다.
 2. 회원 인증
@@ -25,7 +42,7 @@
 
 <br />
 
-## 토큰 재발행 프로세스
+### 토큰 재발행 프로세스
 
 1. 클라이언트로부터 액세스 토큰(만료 상태)과 리프레쉬 토큰을 전달받는다.
 2. 리프레쉬 토큰 JWT 유효성 체크
@@ -48,7 +65,7 @@
 
 <br />
 
-## 로그아웃 프로세스
+### 로그아웃 프로세스
 
 1. 요청 헤더를 통해 액세스 토큰을 전달받는다.
 2. 액세스 토큰 JWT 유효성 체크
@@ -59,7 +76,7 @@
 
 <br />
 
-### 참고 자료
+#### 참고 자료
 - https://www.inflearn.com/course/호돌맨-요절복통-개발쇼
 - https://suddiyo.tistory.com/entry/Spring-Spring-Security-JWT-로그인-구현하기-1
 - https://velog.io/@wonizizi99/Spring-Jwt-방식-인증방식-Security-로그인-로그아웃
