@@ -6,13 +6,13 @@ Spring Security와 JWT를 활용하여 REST API 환경에서 사용자 인증·�
 
 ### 기술 스택
 
-| 카테고리 | 기술 |
+| 분류 | 사용 기술 |
 |---------|------|
-| **Backend** | Java 17, Spring Boot 3.2.4 |
-| **Security** | Spring Security 6.2.3, JWT (jjwt) |
-| **Database** | Spring Data JPA, H2 |
-| **Build Tool** | Gradle 8.6 |
-| **Testing** | JUnit 5, MockMvc |
+| **언어/프레임워크** | Java 17, Spring Boot 3.2.4 |
+| **인증/인가** | Spring Security 6.2.3, JWT (jjwt) |
+| **데이터베이스** | Spring Data JPA, H2 |
+| **빌드 도구** | Gradle 8.6 |
+| **테스트 라이브러리** | JUnit 5, MockMvc |
 
 <br />
 
